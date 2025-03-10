@@ -1,6 +1,6 @@
 module github.com/gameparrot/immortalmobfix
 
-go 1.23.6
+go 1.23
 
 require (
 	github.com/df-mc/goleveldb v1.1.9
