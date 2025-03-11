@@ -15,13 +15,18 @@ import (
 func main() {
 	var scanner *bufio.Scanner
 	var worldPath string
+	keepImmortal := false
 	if len(os.Args) > 1 {
 		worldPath = os.Args[1]
+		keepImmortal = len(os.Args) > 2 && os.Args[2] == "--keep-immortality"
 	} else {
 		fmt.Print("Enter world path: ")
 		scanner = bufio.NewScanner(os.Stdin)
 		scanner.Scan()
 		worldPath = strings.Trim(strings.TrimSuffix(scanner.Text(), " "), "\"'")
+		fmt.Print("Keep immortality by setting Invulnerable tag? (y/N): ")
+		scanner.Scan()
+		keepImmortal = strings.ToLower(scanner.Text()) == "y"
 	}
 	db, err := leveldb.OpenFile(path.Join(worldPath, "db"), &opt.Options{Compression: opt.FlateCompression})
 	if err != nil {
@@ -40,9 +45,12 @@ func main() {
 						}
 						if actorData["Persistent"] == byte(1) {
 							actorData["Dead"] = byte(0)
+							if keepImmortal {
+								actorData["Invulnerable"] = byte(1)
+							}
 							nbtData, err := nbt.MarshalEncoding(&actorData, nbt.LittleEndian)
 							if err == nil {
-								name, _ := getMapValueAsString(actorData, "Name")
+								name, _ := getMapValueAsString(actorData, "CustomName")
 								printStr := "Fixed dead " + mobType
 								if name != "" {
 									printStr += " (" + name + ")"
